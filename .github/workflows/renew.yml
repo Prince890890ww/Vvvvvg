@@ -2,26 +2,27 @@ name: Auto Renew Bot-hosting
 
 on:
   schedule:
-    - cron: '30 22 * * *' # 每天UTC 1点 (北京时间9点, 一般都会推迟),自行根据服务到期时间调整
+    - cron: '30 22 * * *' # 每天UTC 1点 (北京时间9点),自行根据服务到期时间调整
   workflow_dispatch:
 
 jobs:
   Renew-bot:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04  # <--- Yahan 24.04 ki jagah 22.04 kar diya gaya hai
     permissions:
       contents: write
       actions: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4 # v6 nahi hota, v4 latest hai
 
       - name: ⚙ 设置 Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: 🛠️ 安装系统依赖和 Python 依赖
         run: |
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list
           sudo apt-get update
           sudo apt-get install -y xvfb x11-utils xdotool scrot fonts-noto-cjk jq wget
           pip install seleniumbase requests
