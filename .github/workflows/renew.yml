@@ -20,17 +20,16 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: 🛠️ 安装系统依赖和 Python 依赖
+      # System dependencies (apt-get) hata kar direct Chrome install kar rahe hain
+      - name: ⚙️ Setup Chrome Browser
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: 🛠️ Install Python Dependencies
         run: |
-          # 1. Microsoft ke problematic repo ko hata dein
-          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
-          sudo rm -f /etc/apt/sources.list.d/azure-cli.list
-          
-          # 2. Timeout ko 300 seconds badha dein aur retry lagayein
-          sudo timeout 300 apt-get update -o Acquire::Retries=5
-          
-          sudo apt-get install -y xvfb x11-utils xdotool scrot fonts-noto-cjk jq wget
           pip install seleniumbase requests
+          # SeleniumBase ko batayein ki system Chrome use kare
           seleniumbase install chromedriver
 
       - name: ⚙ 设置代理 (sing-box)
@@ -49,6 +48,8 @@ jobs:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         run: |
+          # System Chrome use karne ke liye environment variable set karein
+          export LOCAL_CHROME=true
           xvfb-run --auto-servernum python3 app.py
 
       - name: 🧽 清理进程和临时文件
