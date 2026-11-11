@@ -2,18 +2,18 @@ name: Auto Renew Bot-hosting
 
 on:
   schedule:
-    - cron: '30 22 * * *' # 每天UTC 1点 (北京时间9点),自行根据服务到期时间调整
+    - cron: '30 22 * * *'
   workflow_dispatch:
 
 jobs:
   Renew-bot:
-    runs-on: ubuntu-22.04  # <--- Yahan 24.04 ki jagah 22.04 kar diya gaya hai
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
       actions: write
 
     steps:
-      - uses: actions/checkout@v4 # v6 nahi hota, v4 latest hai
+      - uses: actions/checkout@v4
 
       - name: ⚙ 设置 Python
         uses: actions/setup-python@v5
@@ -22,8 +22,11 @@ jobs:
 
       - name: 🛠️ 安装系统依赖和 Python 依赖
         run: |
-          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list
-          sudo apt-get update
+          # 强制重写 mirror 配置文件，绕过不稳定的 Azure 镜像
+          echo 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
+          
+          # 限制 update 超时时间为 180 秒，避免长时间卡死
+          sudo timeout 180 apt-get update -o Acquire::Retries=3
           sudo apt-get install -y xvfb x11-utils xdotool scrot fonts-noto-cjk jq wget
           pip install seleniumbase requests
           seleniumbase install chromedriver
@@ -55,7 +58,6 @@ jobs:
           pkill -f Xvfb || true
           rm -f sing-box sing-box-config.json sing-box.log
 
-      # 更新时间到time.txt,避免6个月未更新导致工作流暂停
       - name: 🕒 更新运行时间
         run: |
           git config user.name "github-actions[bot]"
