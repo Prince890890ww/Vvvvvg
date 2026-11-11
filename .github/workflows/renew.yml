@@ -22,11 +22,13 @@ jobs:
 
       - name: 🛠️ 安装系统依赖和 Python 依赖
         run: |
-          # 强制重写 mirror 配置文件，绕过不稳定的 Azure 镜像
-          echo 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
+          # 1. Microsoft ke problematic repo ko hata dein
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          sudo rm -f /etc/apt/sources.list.d/azure-cli.list
           
-          # 限制 update 超时时间为 180 秒，避免长时间卡死
-          sudo timeout 180 apt-get update -o Acquire::Retries=3
+          # 2. Timeout ko 300 seconds badha dein aur retry lagayein
+          sudo timeout 300 apt-get update -o Acquire::Retries=5
+          
           sudo apt-get install -y xvfb x11-utils xdotool scrot fonts-noto-cjk jq wget
           pip install seleniumbase requests
           seleniumbase install chromedriver
